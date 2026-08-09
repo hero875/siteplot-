@@ -1,0 +1,28 @@
+name: Automated Pod Allocation
+
+on:
+  repository_dispatch:
+    types: [project_created]
+  workflow_dispatch:
+    inputs:
+      projectId:
+        description: 'The unique Project ID to route'
+        required: true
+      niche:
+        description: 'Target industry category'
+        required: true
+
+jobs:
+  allocate-pod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Allocate Delivery Pod
+        run: |
+          PROJECT_ID="${{ github.event.client_payload.projectId || github.event.inputs.projectId }}"
+          NICHE="${{ github.event.client_payload.niche || github.event.inputs.niche }}"
+          echo "Initiating pod routing for Project $PROJECT_ID ($NICHE)"
+          
+          # Curl local endpoint to allocate pod
+          curl -X POST http://localhost:3000/api/pods/assign \
+            -H "Content-Type: application/json" \
+            -d "{\"projectId\": \"$PROJECT_ID\", \"niche\": \"$NICHE\"}"

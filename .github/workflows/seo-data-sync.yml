@@ -1,0 +1,39 @@
+name: SEO Metrics Data Sync
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # Daily at 6:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  sync-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm and Dependencies
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.1.0
+      
+      - name: Install
+        run: pnpm install
+
+      - name: Sync Keywords, Backlinks and Analytics
+        env:
+          DATAFORSEO_LOGIN: ${{ secrets.DATAFORSEO_LOGIN }}
+          DATAFORSEO_PASSWORD: ${{ secrets.DATAFORSEO_PASSWORD }}
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "Running DataForSEO rank tracker syncs..."
+          curl -X POST http://localhost:3000/api/seo/keywords -H "Content-Type: application/json" -d '{"projectId": "proj_local_dentist"}'
+          curl -X POST http://localhost:3000/api/seo/backlinks -H "Content-Type: application/json" -d '{"projectId": "proj_local_dentist", "domain": "downtowndental.com"}'
+          curl -X POST http://localhost:3000/api/seo/gsc -H "Content-Type: application/json" -d '{"projectId": "proj_local_dentist", "siteUrl": "https://downtowndental.com"}'
