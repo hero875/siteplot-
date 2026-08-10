@@ -2,10 +2,23 @@ import React from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Badge } from "@repo/ui";
 import { FolderKanban, ArrowRight, ShieldCheck, PlayCircle } from "lucide-react";
+import { prisma } from "@repo/db";
+import { auth } from "@clerk/nextjs/server";
+import CreateProjectForm from "./CreateProjectForm";
 
-export default function ProjectsPage() {
-  // Mock projects list context
-  const projects = [
+export default async function ProjectsPage() {
+  const { orgId } = auth();
+
+  // 1. Fetch organization record to get internal DB id
+  const organization = orgId ? await prisma.organization.findUnique({
+    where: { clerkOrgId: orgId },
+    include: { projects: true },
+  }) : null;
+
+  const dbProjects = organization?.projects || [];
+
+  // Fallback mock projects for demonstration
+  const mockProjects = [
     {
       id: "proj_local_dentist",
       name: "Downtown Dental Clinic Campaign",
@@ -28,18 +41,26 @@ export default function ProjectsPage() {
     },
   ];
 
+  // If no projects exist in the database, show mock projects for initial layout
+  const projects = dbProjects.length > 0 ? dbProjects.map((p) => ({
+    id: p.id,
+    name: p.name,
+    playbookType: p.playbookType,
+    status: p.status,
+    niche: (p.settings as any)?.niche || "local",
+    budget: (p.settings as any)?.budget || 5000,
+    nextMilestone: "Onpage & Site Audit Optimization",
+    podName: "Assigned Delivery Pod",
+  })) : mockProjects;
+
   return (
     <div className="p-8 space-y-8 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="font-outfit font-extrabold text-3xl text-white">My SEO Projects</h1>
+          <h1 className="font-outfit font-extrabold text-3xl text-white">My SEO Campaigns</h1>
           <p className="text-muted-foreground text-xs">Manage active campaigns, check delivery progress, and fund milestones.</p>
         </div>
-        <Link href="/calculator">
-          <Button size="sm" variant="default" className="gap-1">
-            <PlayCircle className="h-4 w-4" /> Start New Campaign
-          </Button>
-        </Link>
+        <CreateProjectForm />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -2,8 +2,9 @@ import React from "react";
 import Link from "next/link";
 import { Badge } from "@repo/ui";
 import { LayoutDashboard, Milestone, FileText, Link2, FileBarChart2 } from "lucide-react";
+import { prisma } from "@repo/db";
 
-export default function ProjectDetailLayout({
+export default async function ProjectDetailLayout({
   children,
   params,
 }: {
@@ -12,16 +13,24 @@ export default function ProjectDetailLayout({
 }) {
   const { id } = params;
 
+  // Fetch project dynamically from Supabase
+  const project = id.startsWith("proj_") ? null : await prisma.project.findUnique({
+    where: { id },
+  });
+
+  const projectName = project ? project.name : (id === "proj_saas_auth" ? "SaaS CRM Campaign" : "Downtown Dental Campaign");
+  const projectStatus = project ? project.status : "ACTIVE";
+
   return (
     <div className="p-8 space-y-6 max-w-6xl mx-auto">
       {/* Project Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-white/5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Campaign: {id}</span>
-            <Badge variant="success">Active</Badge>
+            <span className="text-xs text-muted-foreground">Campaign: {id.substring(0, 12)}...</span>
+            <Badge variant={projectStatus === "ACTIVE" ? "success" : "info"}>{projectStatus}</Badge>
           </div>
-          <h1 className="font-outfit font-extrabold text-3xl text-white mt-1">Downtown Dental Campaign</h1>
+          <h1 className="font-outfit font-extrabold text-3xl text-white mt-1">{projectName}</h1>
         </div>
       </div>
 

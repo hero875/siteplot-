@@ -5,17 +5,31 @@ import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { Button } from "@repo/ui";
 import { LayoutDashboard, FolderKanban, ShieldCheck, Settings, BookOpen, Layers } from "lucide-react";
+import { prisma } from "@repo/db";
 
-export default function PortalLayout({
+export default async function PortalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { userId, orgId } = auth();
+  const { userId, orgId, orgSlug } = auth();
 
   // Enforce authentication
   if (!userId) {
     redirect("/sign-in");
+  }
+
+  // Auto-register Organization in Supabase
+  if (orgId) {
+    await prisma.organization.upsert({
+      where: { clerkOrgId: orgId },
+      update: {},
+      create: {
+        clerkOrgId: orgId,
+        name: orgSlug ? orgSlug.toUpperCase() : "My Organization",
+        slug: orgSlug || `org-${orgId.toLowerCase().substring(0, 8)}`,
+      },
+    });
   }
 
   return (

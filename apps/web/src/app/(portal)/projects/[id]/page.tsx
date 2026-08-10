@@ -1,11 +1,22 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge } from "@repo/ui";
 import { ShieldCheck, Calendar, Users, Target } from "lucide-react";
+import { prisma } from "@repo/db";
 
-export default function ProjectDetailPage({ params }: { params: { id: string } }) {
+export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
 
-  const keywords = [
+  // Fetch campaign keywords from Supabase
+  const dbKeywords = id.startsWith("proj_") ? [] : await prisma.keyword.findMany({
+    where: { projectId: id },
+  });
+
+  const keywords = dbKeywords.length > 0 ? dbKeywords.map((k) => ({
+    text: k.text,
+    volume: k.searchVolume || 0,
+    difficulty: k.difficulty || 0,
+    rank: k.currentRank || 100,
+  })) : [
     { text: "best dental implants downtown", volume: 450, difficulty: 58, rank: 4 },
     { text: "cosmetic dentist office review", volume: 3200, difficulty: 60, rank: 9 },
   ];
