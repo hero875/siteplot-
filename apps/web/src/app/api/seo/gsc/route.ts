@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const startDate = thirtyDaysAgo.toISOString().split("T")[0];
 
     const searchStats = await gsc.getSearchAnalytics(siteUrl, startDate, today);
-    let gaStats = [];
+    let gaStats: any[] = [];
 
     if (gaPropertyId) {
       gaStats = await ga4.getTrafficReport(gaPropertyId, startDate, today);

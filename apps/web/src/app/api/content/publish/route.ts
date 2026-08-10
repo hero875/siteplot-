@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@repo/db";
 import { GoogleIndexingClient } from "@repo/seo-core";
-import axios from "axios";
 
 export async function POST(req: NextRequest) {
   try {
