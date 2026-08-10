@@ -50,7 +50,7 @@ export class ContentFactoryPipeline {
   async generateBrief(topic: string, keyword: string, niche: string) {
     try {
       const { object } = await generateObject({
-        model: this.model,
+        model: this.model as any,
         system: prompts.CONTENT_BRIEF_PROMPT,
         prompt: `Create a brief for topic: "${topic}", main keyword: "${keyword}", niche: "${niche}".`,
         schema: briefSchema,
@@ -66,7 +66,7 @@ export class ContentFactoryPipeline {
   async generateDraft(brief: any, brandVoice = "professional, authoritative, and helpful") {
     try {
       const { text } = await generateText({
-        model: this.model,
+        model: this.model as any,
         system: `${prompts.FIRST_DRAFT_PROMPT}\nBrand Voice guidelines: "${brandVoice}"`,
         prompt: `Write a comprehensive article using this brief: ${JSON.stringify(brief)}`,
       });
@@ -81,7 +81,7 @@ export class ContentFactoryPipeline {
   async runQA(draft: string, brief: any) {
     try {
       const { object } = await generateObject({
-        model: this.model,
+        model: this.model as any,
         system: prompts.QA_CHECKLIST_PROMPT,
         prompt: `Perform QA audit on this draft: "${draft.substring(0, 1000)}..." using the brief targets: ${JSON.stringify(brief)}`,
         schema: qaSchema,
@@ -97,7 +97,7 @@ export class ContentFactoryPipeline {
   async generateMetaTags(draft: string, keyword: string) {
     try {
       const { object } = await generateObject({
-        model: this.model,
+        model: this.model as any,
         system: prompts.META_TAGS_PROMPT,
         prompt: `Generate meta tags and FAQ schema for this article: "${draft.substring(0, 1500)}...", target keyword: "${keyword}".`,
         schema: metaSchema,
