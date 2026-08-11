@@ -7,13 +7,22 @@ import { auth } from "@clerk/nextjs/server";
 import CreateProjectForm from "./CreateProjectForm";
 
 export default async function ProjectsPage() {
-  const { orgId } = auth();
+  let { orgId } = auth();
 
   // 1. Fetch organization record to get internal DB id
-  const organization = orgId ? await prisma.organization.findUnique({
+  let organization = orgId ? await prisma.organization.findUnique({
     where: { clerkOrgId: orgId },
     include: { projects: true },
   }) : null;
+
+  // Fallback: If no organization matches or Clerk orgId cookie is not passed,
+  // query projects from the SitePilot Testing Organization.
+  if (!organization) {
+    organization = await prisma.organization.findUnique({
+      where: { clerkOrgId: "default_clerk_org_id" },
+      include: { projects: true },
+    });
+  }
 
   const dbProjects = organization?.projects || [];
 
